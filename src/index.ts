@@ -27,7 +27,7 @@ export default {
 			const category = searchParams.get('category') || '';
 			const department = searchParams.get('department') || '';
 			const search = searchParams.get('search') || '';
-			const pageSize = 20;
+			const pageSize = 10;
 			const offset = (page - 1) * pageSize;
 
 			const results = await db
