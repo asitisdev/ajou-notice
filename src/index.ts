@@ -104,7 +104,7 @@ async function getArticleContent(articleNo: string): Promise<string> {
 
 	const $ = cheerio.load(await response.text());
 	const content = $('div.b-content-box > div.fr-view')
-		.children()
+		.find('p')
 		.get()
 		.map((e) => $(e).text())
 		.join('\n')
