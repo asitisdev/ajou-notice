@@ -70,6 +70,18 @@ export default {
 
 		return new Response('Call GET /api/notices');
 	},
+
+	async scheduled(event, env, ctx) {
+		const db = drizzle(env.DB);
+
+		const latestId = (await db.select({ id: notices.id }).from(notices).orderBy(desc(notices.id)).limit(1).get())?.id ?? 0;
+		const values = await getNotices(latestId);
+
+		for (const notice of values) {
+			console.log(notice.id);
+			await db.insert(notices).values(notice).onConflictDoNothing({ target: notices.id });
+		}
+	},
 } satisfies ExportedHandler<Env>;
 
 async function getArticleContent(articleNo: string): Promise<string> {
