@@ -13,11 +13,21 @@ export default {
 		const { pathname, searchParams } = new URL(request.url);
 
 		if (pathname === '/api/notices') {
+			if (request.method === 'OPTIONS') {
+				return new Response(null, {
+					headers: {
+						'Access-Control-Allow-Origin': '*',
+						'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+						'Access-Control-Max-Age': '86400',
+					},
+				});
+			}
+
 			if (request.method !== 'GET') {
 				return new Response('Method Not Allowed', {
 					status: 405,
 					headers: {
-						'Content-Type': 'text/plain',
+						'Access-Control-Allow-Origin': '*',
 						Allow: 'GET',
 					},
 				});
@@ -45,13 +55,17 @@ export default {
 				.orderBy(desc(notices.id))
 				.all();
 
-			return Response.json(results);
+			return Response.json(results, {
+				headers: {
+					'Access-Control-Allow-Origin': '*',
+				},
+			});
 		} else if (pathname === '/api/notices/refresh') {
 			if (request.method !== 'POST') {
 				return new Response('Method Not Allowed', {
 					status: 405,
 					headers: {
-						'Content-Type': 'text/plain',
+						'Access-Control-Allow-Origin': '*',
 						Allow: 'POST',
 					},
 				});
@@ -65,7 +79,11 @@ export default {
 				await db.insert(notices).values(notice).onConflictDoNothing({ target: notices.id });
 			}
 
-			return Response.json(values);
+			return Response.json(values, {
+				headers: {
+					'Access-Control-Allow-Origin': '*',
+				},
+			});
 		}
 
 		return new Response('Call GET /api/notices');
