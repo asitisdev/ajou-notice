@@ -84,10 +84,10 @@ export default {
 	},
 } satisfies ExportedHandler<Env>;
 
-async function getArticleContent(articleNo: string): Promise<string> {
+async function getArticleContent(articleNo: number): Promise<string> {
 	const params = new URLSearchParams([
 		['mode', 'view'],
-		['articleNo', articleNo],
+		['articleNo', articleNo.toString()],
 	]);
 
 	const response = await fetch(`https://www.ajou.ac.kr/kr/ajou/notice.do?${params.toString()}`, {
@@ -148,14 +148,14 @@ async function getNotices(latestId: number, articleOffset = 0, articleLimit = 20
 		const department = $(this).find('td.b-no-right + td').text().trim();
 		const date = $(this).find('td.b-no-right + td + td').text().trim();
 
-		const articleNo = link.match(/(?:[?&])articleNo=([^&]*)/)![1];
+		const articleNo = parseInt(link.match(/(?:[?&])articleNo=([^&]*)/)![1]);
 
-		if (!index || index <= latestId) return;
+		if (!index || articleNo <= latestId) return;
 
 		promises.push(
 			getArticleContent(articleNo).then((content) => {
 				return {
-					id: index,
+					id: articleNo,
 					title: title,
 					category: category,
 					department: department,
