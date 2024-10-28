@@ -7,6 +7,7 @@ export const noticesTable = sqliteTable('notices', {
 	department: text('department').notNull(),
 	title: text('title').notNull(),
 	content: text('content').notNull(),
+	summary: text('summary').notNull().default(''),
 	url: text('url').notNull(),
 	date: text('date')
 		.notNull()
