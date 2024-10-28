@@ -1,0 +1,1 @@
+ALTER TABLE `notices` ADD `summary` text DEFAULT '' NOT NULL;
