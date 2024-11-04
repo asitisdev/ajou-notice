@@ -14,10 +14,10 @@ export default class NoticeService {
 
 	private async summarizeNotice(title: string, content: string, images: ImageData[]): Promise<string> {
 		const genAI = new GoogleGenerativeAI(this.GOOGLE_API_KEY);
-		const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+		const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro-002' });
 		const prompt = `다음은 아주대학교 공지사항 게시글입니다. 다음 지시사항에 따라 게시글의 내용을 간단히 요약해주세요:
-1. 불렛포인트(-) 형식을 사용하여 최대 3줄의 문장으로 요약해주세요.
-2. 주요 날짜, 장소, 대상자 등 공지사항의 핵심 정보를 포함해주세요.
+1. 불렛포인트(-) 형식을 사용하여 최대 3줄의 *간결한* 문장으로 요약해주세요.
+2. 주요 날짜, 장소 등 공지사항의 핵심 정보를 포함해주세요.
 3. 예의바르고 친근한 어투의 *한국어*를 사용해주세요.
 
 제목: ${title}
@@ -49,7 +49,7 @@ export default class NoticeService {
 		return Buffer.from(arrayBuffer).toString('base64');
 	}
 
-	private async getNotice(articleNo: number): Promise<{ content: string; summary: string }> {
+	public async getNotice(articleNo: number): Promise<{ content: string; summary: string }> {
 		const params = new URLSearchParams([
 			['mode', 'view'],
 			['articleNo', articleNo.toString()],

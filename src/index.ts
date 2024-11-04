@@ -1,7 +1,7 @@
 import { desc, and, or, eq, like } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { Env } from './types';
-import { noticesTable as notices } from './schema';
+import { noticesTable as notices, noticesTable } from './schema';
 import NoticeService from './services/noticeService';
 
 export default {
@@ -97,6 +97,15 @@ export default {
 		for (const notice of values) {
 			console.log(notice.id);
 			await db.insert(notices).values(notice).onConflictDoNothing({ target: notices.id });
+		}
+
+		if (values.length === 0) {
+			const notices = await db.select().from(noticesTable).where(eq(noticesTable.summary, '')).limit(2);
+
+			for (const notice of notices) {
+				const { summary } = await noticeService.getNotice(notice.id);
+				await db.update(noticesTable).set({ summary }).where(eq(noticesTable.id, notice.id));
+			}
 		}
 	},
 } satisfies ExportedHandler<Env>;
