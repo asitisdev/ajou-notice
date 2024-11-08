@@ -37,16 +37,19 @@ export default class NoticeService {
 		}
 	}
 
-	private async imageUrlToBase64(imageUrl: string): Promise<string> {
+	private async imageUrlToBase64(imageUrl: string): Promise<{ data: string; contentType: string }> {
 		const response = await fetch(imageUrl.startsWith('http') ? imageUrl : 'https://ajou.ac.kr' + imageUrl, {
 			headers: {
 				'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0',
-				Accept: 'images/png',
+				Accept: 'image/*',
 			},
 			method: 'GET',
 		});
-		const arrayBuffer = await response.arrayBuffer();
-		return Buffer.from(arrayBuffer).toString('base64');
+
+		return {
+			data: Buffer.from(await response.arrayBuffer()).toString('base64'),
+			contentType: response.headers.get('content-type') || 'image/jpeg',
+		};
 	}
 
 	public async getNotice(articleNo: number): Promise<{ content: string; summary: string }> {
@@ -81,12 +84,15 @@ export default class NoticeService {
 				.get()
 				.map((e) => $(e).attr('src'))
 				.filter((img) => img !== undefined)
-				.map(async (url) => ({
-					inlineData: {
-						data: await this.imageUrlToBase64(url),
-						mimeType: 'image/png',
-					},
-				}))
+				.map(async (url) => {
+					const { data, contentType } = await this.imageUrlToBase64(url);
+					return {
+						inlineData: {
+							data,
+							mimeType: contentType,
+						},
+					};
+				})
 		);
 
 		const summary = await this.summarizeNotice(title, content, images);
