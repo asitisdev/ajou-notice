@@ -11,3 +11,17 @@ export interface InlineData {
 	data: string;
 	mimeType: string;
 }
+
+export interface TextData {
+	text: string;
+}
+
+export type GenerativePart = ImageData | TextData;
+
+export interface GernerativeResponse {
+	candidates: {
+		content: {
+			parts: TextData[];
+		};
+	}[];
+}

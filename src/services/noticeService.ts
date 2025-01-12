@@ -1,7 +1,6 @@
 import * as cheerio from 'cheerio';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { InsertNotice } from '../schema';
-import { InlineData, ImageData } from '../types';
+import { InlineData, ImageData, GenerativePart, GernerativeResponse } from '../types';
 import { Buffer } from 'node:buffer';
 
 export default class NoticeService {
@@ -13,23 +12,39 @@ export default class NoticeService {
 	}
 
 	private async summarizeNotice(title: string, content: string, images: ImageData[]): Promise<string> {
-		const genAI = new GoogleGenerativeAI(this.GOOGLE_API_KEY);
 		for (const modelName of ['gemini-1.5-pro-002', 'gemini-1.5-flash-002']) {
 			try {
-				const model = genAI.getGenerativeModel({ model: modelName });
-				const prompt = `다음은 아주대학교 공지사항 게시글입니다. 다음 지시사항에 따라 게시글의 내용을 간단히 요약해주세요:
+				const parts: GenerativePart[] = [
+					...images,
+					{
+						text: `다음은 아주대학교 공지사항 게시글입니다. 다음 지시사항에 따라 게시글의 내용을 간단히 요약해주세요:
 1. 불렛포인트(-) 형식을 사용하여 최대 3줄의 *간결한* 문장으로 요약해주세요.
 2. 주요 날짜, 장소 등 공지사항의 핵심 정보를 포함해주세요.
 3. 예의바르고 친근한 어투의 *한국어*를 사용해주세요.
 
 제목: ${title}
-게시글 내용: ${content}`;
+게시글 내용: ${content}`,
+					},
+				];
 
-				const result = (await model.generateContent([prompt, ...images])).response
-					.text()
+				const response = await fetch(
+					`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${this.GOOGLE_API_KEY}`,
+					{
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ contents: [{ parts }] }),
+					}
+				);
+
+				if (!response.ok) continue;
+
+				const data = (await response.json()) as GernerativeResponse;
+				const result = data.candidates[0].content.parts
+					.map((part) => part.text || '')
+					.join('\n')
 					.split('\n')
-					.filter((line) => line.trim().startsWith('- '))
-					.map((line) => `✨ ${line.trim().slice(2)}`)
+					.filter((line: string) => line.trim().startsWith('- '))
+					.map((line: string) => `✨ ${line.trim().slice(2)}`)
 					.join('\n');
 
 				return result;
