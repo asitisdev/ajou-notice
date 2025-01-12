@@ -4,8 +4,10 @@ export interface Env {
 }
 
 export interface ImageData {
-	inlineData: {
-		data: string;
-		mimeType: string;
-	};
+	inlineData: InlineData;
+}
+
+export interface InlineData {
+	data: string;
+	mimeType: string;
 }

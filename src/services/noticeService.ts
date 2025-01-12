@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { InsertNotice } from '../schema';
-import { ImageData } from '../types';
+import { InlineData, ImageData } from '../types';
 import { Buffer } from 'node:buffer';
 
 export default class NoticeService {
@@ -41,18 +41,17 @@ export default class NoticeService {
 		return '';
 	}
 
-	private async imageUrlToBase64(imageUrl: string): Promise<{ data: string; contentType: string }> {
+	private async imageUrlToInlineData(imageUrl: string): Promise<InlineData> {
 		const response = await fetch(imageUrl.startsWith('http') ? imageUrl : 'https://ajou.ac.kr' + imageUrl, {
 			headers: {
-				'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0',
-				Accept: 'image/*',
+				'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0',
+				Accept: 'image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5',
 			},
-			method: 'GET',
 		});
 
 		return {
 			data: Buffer.from(await response.arrayBuffer()).toString('base64'),
-			contentType: response.headers.get('content-type') || 'image/jpeg',
+			mimeType: response.headers.get('content-type') || 'image/jpeg',
 		};
 	}
 
@@ -64,7 +63,7 @@ export default class NoticeService {
 
 		const response = await fetch(`${this.BASE_URL}?${params.toString()}`, {
 			headers: {
-				'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0',
+				'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0',
 				Accept: 'text/html',
 			},
 			method: 'GET',
@@ -88,15 +87,9 @@ export default class NoticeService {
 				.get()
 				.map((e) => $(e).attr('src'))
 				.filter((img) => img !== undefined)
-				.map(async (url) => {
-					const { data, contentType } = await this.imageUrlToBase64(url);
-					return {
-						inlineData: {
-							data,
-							mimeType: contentType,
-						},
-					};
-				})
+				.map(async (url) => ({
+					inlineData: await this.imageUrlToInlineData(url),
+				}))
 		);
 
 		const summary = await this.summarizeNotice(title, content, images);
