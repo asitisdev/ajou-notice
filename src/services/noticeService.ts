@@ -12,7 +12,7 @@ export default class NoticeService {
 	}
 
 	private async summarizeNotice(title: string, content: string, images: ImageData[]): Promise<string> {
-		for (const modelName of ['gemini-1.5-pro-002', 'gemini-1.5-flash-002']) {
+		for (const modelName of ['gemini-2.5-flash', 'gemini-2.5-flash-lite-preview-06-17']) {
 			try {
 				const parts: GenerativePart[] = [
 					...images,
