@@ -10,12 +10,12 @@
     "cf-typegen": "wrangler types"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.4.5",
+    "@cloudflare/vitest-pool-workers": "^0.8.39",
     "@cloudflare/workers-types": "^4.20240909.0",
-    "drizzle-kit": "^0.24.2",
+    "drizzle-kit": "^0.31.1",
     "typescript": "^5.5.2",
-    "vitest": "1.5.0",
-    "wrangler": "^3.60.3"
+    "vitest": "^3.2.4",
+    "wrangler": "^4.20.1"
   },
   "dependencies": {
     "cheerio": "^1.0.0",
