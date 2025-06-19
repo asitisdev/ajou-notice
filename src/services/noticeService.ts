@@ -43,8 +43,8 @@ export default class NoticeService {
 					.map((part) => part.text || '')
 					.join('\n')
 					.split('\n')
-					.filter((line: string) => line.trim().startsWith('- '))
-					.map((line: string) => `✨ ${line.trim().slice(2)}`)
+					.filter((line: string) => line.trim().startsWith('- ') || line.trim().startsWith('* '))
+					.map((line: string) => `✨ ${line.trim().slice(2).trim()}`)
 					.join('\n');
 
 				return result;
