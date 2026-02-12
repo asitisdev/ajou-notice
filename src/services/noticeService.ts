@@ -12,7 +12,7 @@ export default class NoticeService {
 	}
 
 	private async summarizeNotice(title: string, content: string, images: ImageData[]): Promise<string> {
-		for (const modelName of ['gemini-2.5-flash', 'gemini-2.5-flash-lite-preview-06-17']) {
+		for (const modelName of ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemma-3-27b-it']) {
 			try {
 				const parts: GenerativePart[] = [
 					...images,
@@ -28,12 +28,12 @@ export default class NoticeService {
 				];
 
 				const response = await fetch(
-					`https://gateway.ai.cloudflare.com/v1/7ea22cec2b5f7e4f1628298e55006d09/ai/google-ai-studio/v1/models/${modelName}:generateContent`,
+					`https://gateway.ai.cloudflare.com/v1/7ea22cec2b5f7e4f1628298e55006d09/ai/google-ai-studio/v1beta/models/${modelName}:generateContent`,
 					{
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json', 'X-goog-api-key': this.GOOGLE_API_KEY },
 						body: JSON.stringify({ contents: [{ parts }] }),
-					}
+					},
 				);
 
 				if (!response.ok) continue;
@@ -56,13 +56,15 @@ export default class NoticeService {
 		return '';
 	}
 
-	private async imageUrlToInlineData(imageUrl: string): Promise<InlineData> {
+	private async imageUrlToInlineData(imageUrl: string): Promise<InlineData | null> {
 		const response = await fetch(imageUrl.startsWith('http') ? imageUrl : 'https://ajou.ac.kr' + imageUrl, {
 			headers: {
 				'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0',
 				Accept: 'image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5',
 			},
 		});
+
+		if (!response.ok) return null;
 
 		return {
 			data: Buffer.from(await response.arrayBuffer()).toString('base64'),
@@ -96,16 +98,15 @@ export default class NoticeService {
 			.map((e) => $(e).text())
 			.join('\n')
 			.trim();
-		const images = await Promise.all(
+		const inlineData = await Promise.all(
 			$('div.b-content-box > div.fr-view')
 				.find('img')
 				.get()
 				.map((e) => $(e).attr('src'))
 				.filter((img) => img !== undefined)
-				.map(async (url) => ({
-					inlineData: await this.imageUrlToInlineData(url),
-				}))
+				.map((url) => this.imageUrlToInlineData(url)),
 		);
+		const images = inlineData.filter((data): data is InlineData => data !== null).map((inlineData) => ({ inlineData }));
 
 		const summary = await this.summarizeNotice(title, content, images);
 
@@ -160,7 +161,7 @@ export default class NoticeService {
 						summary: notice.summary,
 						date: date,
 					};
-				})
+				}),
 			);
 		}
 
