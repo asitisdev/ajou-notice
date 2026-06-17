@@ -39,13 +39,16 @@ export default class NoticeService {
 				if (!response.ok) continue;
 
 				const data = (await response.json()) as GernerativeResponse;
-				const result = data.candidates[0].content.parts
+				const result = (data.candidates[0]?.content?.parts ?? [])
+					.filter((part) => !part.thought)
 					.map((part) => part.text || '')
 					.join('\n')
 					.split('\n')
 					.filter((line: string) => line.trim().startsWith('- ') || line.trim().startsWith('* '))
 					.map((line: string) => `✨ ${line.trim().slice(2).trim()}`)
 					.join('\n');
+
+				if (!result) continue;
 
 				return result;
 			} catch {

@@ -14,6 +14,7 @@ export interface InlineData {
 
 export interface TextData {
 	text: string;
+	thought?: boolean;
 }
 
 export type GenerativePart = ImageData | TextData;
